@@ -1,14 +1,132 @@
+// envcfg is a simple package for loading configuration, based loosly on
+// Ruby's `dotenv` gem.
+//
+// Example:
+//
+//    package main
+//
+//    import (
+//    	".." // "gopkg.in/jmervine/envcfg.v1"
+//    	"fmt"
+//    )
+//
+//    func init() {
+//    }
+//
+//    func main() {
+//    	err := envcfg.Load("example.env")
+//    	if err != nil {
+//    		panic(err)
+//    	}
+//
+//    	envcfg.PanicOnRequire = true
+//
+//    	d, _ := envcfg.Require("DATABASE_URL")
+//    	var (
+//    		dburl   = *d
+//    		addr    = *(envcfg.GetString("ADDR"))
+//    		port    = *(envcfg.GetOrSetInt("PORT", 3000))
+//    	)
+//
+//    	fmt.Printf("dburl   ::: %s\n", dburl)
+//    	fmt.Printf("addr    ::: %s\n", addr)
+//    	fmt.Printf("port    ::: %d\n", port)
+//    }
 package envcfg
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
 // PanicOnRequire forces panics when Require- methods fail
 var PanicOnRequire = false
+
+// Load loads a file containing standard os environment key/value pairs,
+// doesn't override currently set variables
+//
+// e.g.: .env
+//
+//     PORT=3000
+//     ADDR=0.0.0.0
+//     DEBUG=true
+//
+func Load(file string) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = r.(error)
+		}
+	}()
+
+	b, e := ioutil.ReadFile(file)
+	if e != nil {
+		return e
+	}
+	s := string(b)
+
+	lines := strings.Split(s, "\n")
+	for _, line := range lines {
+		line = stripComments(line)
+		line = strings.TrimSpace(line)
+
+		if !strings.HasPrefix(line, "#") && line != "" {
+			kv := strings.SplitN(line, "=", 2)
+			switch len(kv) {
+			case 0:
+				return fmt.Errorf("unknown error occured while loading %s", file)
+			case 1:
+				if !IsSet(kv[0]) {
+					Set(kv[0], "")
+				}
+			case 2:
+				if !IsSet(kv[0]) {
+					Set(kv[0], removeQuotes(kv[1]))
+				}
+			default:
+				return fmt.Errorf("unknown error occured while loading %s", file)
+			}
+		}
+	}
+
+	return nil
+}
+
+func removeQuotes(val string) string {
+	size := len(val)
+	val = strings.TrimSpace(val)
+
+	if strings.HasPrefix(val, `"`) || strings.HasPrefix(val, `'`) {
+		val = val[1:]
+	}
+
+	if (strings.HasSuffix(val, `"`) && !strings.HasSuffix(val, `\"`)) ||
+		(strings.HasSuffix(val, `'`) && !strings.HasSuffix(val, `\'`)) {
+		val = val[:size-2]
+	}
+
+	return val
+}
+
+func stripComments(line string) string {
+	matchers := `"'`
+	// clean trailing comments as well, quote friendly
+	firstQuote := strings.IndexAny(line, matchers)
+	lastQuote := strings.LastIndexAny(line, matchers)
+
+	if lastQuote > firstQuote {
+		line = strings.TrimSuffix(line, line[lastQuote+1:])
+	} else {
+		firstPound := strings.Index(line, "#")
+		if firstPound > 0 {
+			line = line[:firstPound]
+		}
+	}
+	return line
+}
 
 // Set sets via an interface
 func Set(key string, val interface{}) {

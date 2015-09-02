@@ -13,6 +13,40 @@ PACKAGE DOCUMENTATION
 package envcfg
     import "gopkg.in/jmervine/envcfg.v1"
 
+    envcfg is a simple package for loading configuration, based loosly on
+    Ruby's `dotenv` gem.
+
+    Example:
+
+    package main
+
+    import (
+        ".." // "gopkg.in/jmervine/envcfg.v1"
+        "fmt"
+    )
+
+    func init() {
+    }
+
+    func main() {
+        err := envcfg.Load("example.env")
+        if err != nil {
+            panic(err)
+        }
+
+        envcfg.PanicOnRequire = true
+
+        d, _ := envcfg.Require("DATABASE_URL")
+        var (
+            dburl   = *d
+            addr    = *(envcfg.GetString("ADDR"))
+            port    = *(envcfg.GetOrSetInt("PORT", 3000))
+        )
+
+        fmt.Printf("dburl   ::: %s\n", dburl)
+        fmt.Printf("addr    ::: %s\n", addr)
+        fmt.Printf("port    ::: %d\n", port)
+    }
 
 VARIABLES
 
@@ -80,6 +114,16 @@ func GetUint64(key string) *uint64
 
 func IsSet(key string) bool
     IsSet return true if a key is not "" in os.Getenv
+
+func Load(file string) (err error)
+    Load loads a file containing standard os environment key/value pairs,
+    doesn't override currently set variables
+
+    e.g.: .env
+
+    PORT=3000
+    ADDR=0.0.0.0
+    DEBUG=true
 
 func Require(key string) (*string, error)
     Require gets a key and returns a string or an error if it's set to "" in
