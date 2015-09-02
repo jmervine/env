@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// PanicOnRequire forces panics when Require- methods fail.
+// PanicOnRequire forces panics when Require- methods fail
 var PanicOnRequire = false
 
 // Set sets via an interface
