@@ -55,7 +55,16 @@ var PanicOnRequire = false
 //     ADDR=0.0.0.0
 //     DEBUG=true
 //
-func Load(file string) (err error) {
+func Load(file string) error {
+	return load(false, file)
+}
+
+// Overload does the same thing as Load, but overrides existing variables
+func Overload(file string) error {
+	return load(true, file)
+}
+
+func load(override bool, file string) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = r.(error)
@@ -68,6 +77,17 @@ func Load(file string) (err error) {
 	}
 	s := string(b)
 
+	setter := func(k, v string) {
+		if override {
+			Set(k, removeQuotes(v))
+			return
+		}
+
+		if !IsSet(k) {
+			Set(k, removeQuotes(v))
+		}
+	}
+
 	lines := strings.Split(s, "\n")
 	for _, line := range lines {
 		line = stripComments(line)
@@ -79,15 +99,11 @@ func Load(file string) (err error) {
 			case 0:
 				return fmt.Errorf("unknown error occured while loading %s", file)
 			case 1:
-				if !IsSet(kv[0]) {
-					Set(kv[0], "")
-				}
+				setter(kv[0], "")
 			case 2:
-				if !IsSet(kv[0]) {
-					Set(kv[0], removeQuotes(kv[1]))
-				}
+				setter(kv[0], kv[1])
 			default:
-				return fmt.Errorf("unknown error occured while loading %s", file)
+				return fmt.Errorf("too man parts while loading %s (%q)", file, line)
 			}
 		}
 	}

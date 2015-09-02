@@ -585,10 +585,12 @@ func ExampleGetInt() {
 }
 
 func ExampleLoad() {
-	// using `_fixtures/fixtures.env`
-	Load(env)
+	defer UnSetFixtures()
 
 	Set("F_STRING", "old_string")
+
+	// using `_fixtures/fixtures.env`
+	Load(env)
 
 	var f = GetFloat32("F_FLOAT32")
 	var s = GetString("F_STRING")
@@ -603,6 +605,31 @@ func ExampleLoad() {
 	// Output:
 	// F_FLOAT32 ::: 9.1
 	// F_STRING  ::: old_string
+	// F_BOOL    ::: false
+	// F_INT     ::: 9
+}
+
+func ExampleOverload() {
+	defer UnSetFixtures()
+
+	Set("F_STRING", "old_string")
+
+	// using `_fixtures/fixtures.env`
+	Overload(env)
+
+	var f = GetFloat32("F_FLOAT32")
+	var s = GetString("F_STRING")
+	var b = GetBool("F_BOOL")
+	var i = GetInt("F_INT")
+
+	fmt.Printf("F_FLOAT32 ::: %v\n", *f)
+	fmt.Printf("F_STRING  ::: %v\n", *s)
+	fmt.Printf("F_BOOL    ::: %v\n", *b)
+	fmt.Printf("F_INT     ::: %v\n", *i)
+
+	// Output:
+	// F_FLOAT32 ::: 9.1
+	// F_STRING  ::: sample file
 	// F_BOOL    ::: false
 	// F_INT     ::: 9
 }
