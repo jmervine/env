@@ -1,13 +1,17 @@
 # envcfg
+
+[![GoDoc](https://godoc.org/gopkg.in/jmervine/envcfg.v1?status.png)](https://godoc.org/gopkg.in/jmervine/envcfg.v1) [![Build Status](https://travis-ci.org/jmervine/envcfg.svg?branch=master)](https://travis-ci.org/jmervine/envcfg)
+
+
 Simple configuration utility around os.{Get,Set}env
 
-# usage
+## usage
 
 ```
 PACKAGE DOCUMENTATION
 
 package envcfg
-    import "github.com/jmervine/envcfg"
+    import "gopkg.in/jmervine/envcfg.v1"
 
 
 VARIABLES
@@ -109,7 +113,7 @@ func SetMap(m map[string]interface{})
 
 ```
 
-# LICENSE
+## LICENSE
 
 ```
 Copyright (c) 2015 Joshua Mervine
