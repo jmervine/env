@@ -43,7 +43,7 @@ import (
 	"strconv"
 	"time"
 
-	dotenv "github.com/joho/godotenv"
+	dotenv "github.com/jmervine/env/Godeps/_workspace/src/github.com/joho/godotenv"
 )
 
 // PanicOnRequire forces panics when Require- methods fail

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/jmervine/GoT"
+	. "github.com/jmervine/env/Godeps/_workspace/src/github.com/jmervine/GoT"
 )
 
 var env = "_fixtures/fixtures.env"
