@@ -144,6 +144,31 @@ func SetMap(m map[string]interface{})
 
 ```
 
+## development
+
+#### stdlib
+
+```bash
+go test -race -cover .
+
+# please include output in any pull requests
+```
+
+#### w/ docker and docker-compose
+
+> This is how I do it.
+
+```bash
+# basic
+docker-compose run test
+
+# basic w/ coverage
+docker-compose run verbose
+
+# verobse w/ coverage and race
+docker-compose run cover
+```
+
 ## LICENSE
 
 ```
