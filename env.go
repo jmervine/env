@@ -3,38 +3,43 @@
 //
 // Example:
 //
-//    package main
+//     package main
 //
-//    import (
-//    	"github.com/jmervine/env"
+//     import (
+//     	"github.com/jmervine/env"
 //
-//    	"fmt"
-//    )
+//     	"fmt"
+//     )
 //
-//    func main() {
-//    	var err error
-//    	err = env.Load("example.env")
-//    	if err != nil {
-//      	panic(err)
-//    	}
+//     func init() {
+//     	env.PanicOnRequire = true
+//     	var err error
+//     	err = env.Load("_example/example.env")
+//     	if err != nil {
+//     		// work in _example
+//     		err = env.Load("example.env")
+//     		if err != nil {
+//     			panic(err)
+//     		}
+//     	}
 //
-//    	env.PanicOnRequire = true
+//     	// ensure requires
+//     	env.Require("DATABASE_URL")
+//     }
 //
-//    	d, _ := env.Require("DATABASE_URL")
-//    	var (
-//    		dburl   = d
-//    		ignored = env.GetOrSetBool("IGNORED", true)
-//    		debug   = env.GetBool("DEBUG")
-//    		addr    = env.GetString("ADDR")
-//    		port    = env.GetOrSetInt("PORT", 3000)
-//    	)
+//     func main() {
+//     	fmt.Printf("dburl   ::: %s\n", env.Get("DATABASE_URL"))
+//     	fmt.Printf("addr    ::: %s\n", env.Get("ADDR"))
+//     	fmt.Printf("port    ::: %d\n", env.GetInt("PORT"))
 //
-//    	fmt.Printf("dburl   ::: %s\n", dburl)
-//    	fmt.Printf("ignored ::: %v\n", ignored)
-//    	fmt.Printf("debug   ::: %v\n", debug)
-//    	fmt.Printf("addr    ::: %s\n", addr)
-//    	fmt.Printf("port    ::: %d\n", port)
-//    }
+//     	if env.GetBool("IGNORED") {
+//     		fmt.Printf("ignored ::: %v\n", env.GetBool("IGNORED"))
+//     	}
+//
+//     	if env.GetBool("DEBUG") {
+//     		fmt.Printf("debug   ::: %v\n", env.GetBool("DEBUG"))
+//     	}
+//     }
 package env
 
 import (
