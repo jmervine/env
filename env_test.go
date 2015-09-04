@@ -134,6 +134,31 @@ func TestGetBytes(T *testing.T) {
 	Go(T).AssertEqual(b, Fixtures["F_BYTES"])
 }
 
+func TestRequireBytes(T *testing.T) {
+	defer UnsetFixtures()
+
+	b, e := RequireBytes("F_BYTES")
+	Go(T).RefuteNil(e)
+	Go(T).AssertEqual(b, []byte(""))
+
+	SetFixtures()
+	b, e = RequireBytes("F_BYTES")
+	Go(T).AssertEqual(b, Fixtures["F_BYTES"])
+	Go(T).AssertNil(e)
+}
+
+func TestGetOrSetBytes(T *testing.T) {
+	defer UnsetFixtures()
+
+	b := GetOrSetBytes("F_BYTES", []byte("default"))
+	Go(T).AssertEqual(b, []byte("default"))
+
+	ResetFixtures()
+
+	b = GetOrSetBytes("F_BYTES", []byte("default"))
+	Go(T).AssertEqual(b, Fixtures["F_BYTES"])
+}
+
 func TestRequireDuration(T *testing.T) {
 	defer UnsetFixtures()
 
