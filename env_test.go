@@ -15,7 +15,7 @@ import (
 var env = "_fixtures/fixtures.env"
 
 func init() {
-	UnSetFixtures()
+	UnsetFixtures()
 }
 
 func TestLoad(T *testing.T) {
@@ -23,7 +23,7 @@ func TestLoad(T *testing.T) {
 }
 
 func TestOverload(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 	os.Setenv("F_INT", "999")
 
 	err := Overload(env)
@@ -34,31 +34,41 @@ func TestOverload(T *testing.T) {
 }
 
 func TestSet(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	for key, val := range Fixtures {
 		Set(key, val)
+
+		if key == "F_BYTES" {
+			Go(T).AssertEqual(os.Getenv(key), "bytes")
+			continue
+		}
 
 		Go(T).AssertEqual(os.Getenv(key), fmt.Sprintf("%v", val))
 	}
 }
 
 func TestSetMap(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 	SetMap(Fixtures)
 
 	for key, val := range Fixtures {
+		if key == "F_BYTES" {
+			Go(T).AssertEqual(os.Getenv(key), "bytes")
+			continue
+		}
+
 		Go(T).AssertEqual(os.Getenv(key), fmt.Sprintf("%v", val))
 	}
 }
 
 func TestGet(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	s := Get("F_STRING")
 	Go(T).AssertEqual(s, "")
 
-	SetFixtures()
+	ResetFixtures()
 
 	s = Get("F_STRING")
 	Go(T).AssertEqual(s, "string")
@@ -68,13 +78,13 @@ func TestGet(T *testing.T) {
 }
 
 func TestRequire(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	s, e := Require("F_STRING")
 	Go(T).AssertEqual(e.Error(), "missing required string from F_STRING")
 	Go(T).AssertEqual(s, "")
 
-	SetFixtures()
+	ResetFixtures()
 
 	s, e = Require("F_STRING")
 	Go(T).AssertEqual(s, "string")
@@ -86,19 +96,46 @@ func TestRequire(T *testing.T) {
 }
 
 func TestGetOrSet(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	s := GetOrSet("F_STRING", "default")
 	Go(T).AssertEqual(s, "default")
-	UnSetFixtures()
 
-	SetFixtures()
+	i := GetOrSet("F_INT", 1)
+	Go(T).AssertEqual(i, "1")
+
+	ResetFixtures()
+
 	s = GetOrSet("F_STRING", "default")
 	Go(T).AssertEqual(s, "string")
 }
 
+func TestGetOrSetString(T *testing.T) {
+	defer UnsetFixtures()
+
+	s := GetOrSetString("F_STRING", "default")
+	Go(T).AssertEqual(s, "default")
+
+	ResetFixtures()
+
+	s = GetOrSetString("F_STRING", "default")
+	Go(T).AssertEqual(s, "string")
+}
+
+func TestGetBytes(T *testing.T) {
+	defer UnsetFixtures()
+
+	b := GetBytes("F_BYTES")
+	Go(T).AssertEqual(b, []byte(""))
+
+	ResetFixtures()
+
+	b = GetBytes("F_BYTES")
+	Go(T).AssertEqual(b, Fixtures["F_BYTES"])
+}
+
 func TestRequireDuration(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	emptyDur := new(time.Duration)
 
@@ -113,7 +150,7 @@ func TestRequireDuration(T *testing.T) {
 }
 
 func TestGetDuration(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 	SetFixtures()
 
 	d := GetDuration("F_DURATION")
@@ -121,7 +158,7 @@ func TestGetDuration(T *testing.T) {
 }
 
 func TestGetOrSetDuration(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	def, _ := time.ParseDuration("1d")
 
@@ -135,7 +172,7 @@ func TestGetOrSetDuration(T *testing.T) {
 }
 
 func TestGetInt(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	i := GetInt("F_INT")
 	Go(T).AssertEqual(i, int(0))
@@ -147,7 +184,7 @@ func TestGetInt(T *testing.T) {
 }
 
 func TestGetOrSetInt(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	def := int(2)
 
@@ -161,7 +198,7 @@ func TestGetOrSetInt(T *testing.T) {
 }
 
 func TestRequireInt(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	i, e := RequireInt("F_INT")
 	Go(T).RefuteNil(e)
@@ -174,7 +211,7 @@ func TestRequireInt(T *testing.T) {
 }
 
 func TestGetInt32(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	i := GetInt32("F_INT32")
 	Go(T).AssertEqual(i, int32(0))
@@ -186,7 +223,7 @@ func TestGetInt32(T *testing.T) {
 }
 
 func TestGetOrSetInt32(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	def := int32(2)
 
@@ -200,7 +237,7 @@ func TestGetOrSetInt32(T *testing.T) {
 }
 
 func TestRequireInt32(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	i, e := RequireInt32("F_INT32")
 	Go(T).RefuteNil(e)
@@ -213,7 +250,7 @@ func TestRequireInt32(T *testing.T) {
 }
 
 func TestGetInt64(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	i := GetInt64("F_INT64")
 	Go(T).AssertEqual(i, int64(0))
@@ -225,7 +262,7 @@ func TestGetInt64(T *testing.T) {
 }
 
 func TestGetOrSetInt64(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	def := int64(2)
 
@@ -239,7 +276,7 @@ func TestGetOrSetInt64(T *testing.T) {
 }
 
 func TestRequireInt64(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	i, e := RequireInt64("F_INT64")
 	Go(T).RefuteNil(e)
@@ -252,7 +289,7 @@ func TestRequireInt64(T *testing.T) {
 }
 
 func TestGetFloat32(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	i := GetFloat32("F_FLOAT32")
 	Go(T).AssertEqual(i, float32(0))
@@ -264,7 +301,7 @@ func TestGetFloat32(T *testing.T) {
 }
 
 func TestGetOrSetFloat32(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	def := float32(2)
 
@@ -278,7 +315,7 @@ func TestGetOrSetFloat32(T *testing.T) {
 }
 
 func TestRequireFloat32(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	i, e := RequireFloat32("F_FLOAT32")
 	Go(T).RefuteNil(e)
@@ -291,7 +328,7 @@ func TestRequireFloat32(T *testing.T) {
 }
 
 func TestGetFloat64(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	i := GetFloat64("F_FLOAT64")
 	Go(T).AssertEqual(i, float64(0))
@@ -303,7 +340,7 @@ func TestGetFloat64(T *testing.T) {
 }
 
 func TestGetOrSetFloat64(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	def := float64(2)
 
@@ -317,7 +354,7 @@ func TestGetOrSetFloat64(T *testing.T) {
 }
 
 func TestRequireFloat64(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	i, e := RequireFloat64("F_FLOAT64")
 	Go(T).RefuteNil(e)
@@ -330,7 +367,7 @@ func TestRequireFloat64(T *testing.T) {
 }
 
 func TestGetBool(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	i := GetBool("F_BOOL")
 	Go(T).AssertEqual(i, false)
@@ -342,7 +379,7 @@ func TestGetBool(T *testing.T) {
 }
 
 func TestGetOrSetBool(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	def := bool(false)
 
@@ -356,7 +393,7 @@ func TestGetOrSetBool(T *testing.T) {
 }
 
 func TestRequireBool(T *testing.T) {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	i, e := RequireBool("F_BOOL")
 	Go(T).RefuteNil(e)
@@ -370,6 +407,17 @@ func TestRequireBool(T *testing.T) {
 
 func Test_toString(T *testing.T) {
 	Go(T).AssertEqual(toString(9), "9")
+
+	b := []byte("bytes")
+	Go(T).AssertEqual(toString(b), "bytes")
+
+	// easer eggs for later
+	s := []string{"a", "b", "c"}
+	Go(T).AssertEqual(toString(s), "a,b,c")
+
+	// easer eggs for later
+	i := []interface{}{1, 2, 3}
+	Go(T).AssertEqual(toString(i), "1,2,3")
 }
 
 func Test_onError(T *testing.T) {
@@ -424,7 +472,7 @@ func ExampleGetInt() {
 }
 
 func ExampleLoad() {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	Set("F_STRING", "old_string")
 
@@ -449,7 +497,7 @@ func ExampleLoad() {
 }
 
 func ExampleOverload() {
-	defer UnSetFixtures()
+	defer UnsetFixtures()
 
 	Set("F_STRING", "old_string")
 

@@ -41,6 +41,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	dotenv "github.com/jmervine/env/Godeps/_workspace/src/github.com/joho/godotenv"
@@ -93,11 +94,6 @@ func Get(key string) string {
 	return os.Getenv(key)
 }
 
-// GetString is an alias to Get
-func GetString(key string) string {
-	return Get(key)
-}
-
 // Require gets a key and returns a string or an error if it's set to "" in
 // os.Getenv
 func Require(key string) (val string, err error) {
@@ -107,10 +103,6 @@ func Require(key string) (val string, err error) {
 	}
 
 	return val, err
-}
-
-func RequireString(key string) (string, error) {
-	return Require(key)
 }
 
 // GetOrSet gets a key and returns a string or set's the default
@@ -127,6 +119,44 @@ func GetOrSet(key string, val interface{}) string {
 	return v
 }
 
+// GetString is an alias to Get
+func GetString(key string) string {
+	return Get(key)
+}
+
+// GetString is an alias to Require
+func RequireString(key string) (string, error) {
+	return Require(key)
+}
+
+// GetOrSetString is an alias to GetOrSet, except it only takes a string
+// as default value
+func GetOrSetString(key, val string) string {
+	return GetOrSet(key, val)
+}
+
+// GetBytes gets get and converts value to []byte
+func GetBytes(key string) []byte {
+	return []byte(Get(key))
+}
+
+// GetBytes requires key and converts value to []byte
+func RequireBytes(key string) ([]byte, error) {
+	s, e := Require(key)
+	return []byte(s), e
+}
+
+// GetBytes gets or sets key and returns value as []byte
+func GetOrSetBytes(key string, val []byte) []byte {
+	return []byte(GetOrSet(key, val))
+}
+
+// GetDuration gets key and returns value as time.Duration
+func GetDuration(key string) time.Duration {
+	return toDur(Get(key))
+}
+
+// GetDuration requires key and returns value as time.Duration
 func RequireDuration(key string) (time.Duration, error) {
 	str, err := Require(key)
 	if err != nil {
@@ -137,10 +167,7 @@ func RequireDuration(key string) (time.Duration, error) {
 	return toDur(str), nil
 }
 
-func GetDuration(key string) time.Duration {
-	return toDur(Get(key))
-}
-
+// GetDuration gets or sets key and returns value as time.Duration
 func GetOrSetDuration(key string, val time.Duration) time.Duration {
 	str := Get(key)
 	if str != "" {
@@ -156,6 +183,7 @@ func GetInt(key string) int {
 	return toInt(Get(key))
 }
 
+// GetOrSetInt gets or sets key and returns value as int
 func GetOrSetInt(key string, val int) int {
 	str := Get(key)
 	if str != "" {
@@ -292,6 +320,25 @@ func toBool(val string) bool {
 }
 
 func toString(v interface{}) string {
+	switch t := v.(type) {
+	case string:
+		// noop
+		return t
+	case []byte:
+		// special for []byte
+		return string(t)
+	case []string:
+		// easer eggs for later
+		return strings.Join(t, ",")
+	case []interface{}:
+		// easer eggs for later
+		strs := make([]string, 0)
+		for _, i := range t {
+			strs = append(strs, toString(i))
+		}
+		return strings.Join(strs, ",")
+	}
+
 	return fmt.Sprintf("%v", v)
 }
 
